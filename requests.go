@@ -18,10 +18,10 @@ func writeHeaders(request *http.Request, headers map[string]string) {
 }
 
 // Get запрос, принимает в качестве аргумента map[string]string в котором содержатся заголовки,uri адрес
-func Get(headers map[string]string, uri string) ([]byte, error) {
+func Get(headers map[string]string, uri string) ([]byte, int, error) {
 	request, err := http.NewRequest(http.MethodGet, uri, nil)
 	if err != nil {
-		return []byte{}, err
+		return []byte{}, 0, err
 	}
 
 	writeHeaders(request, headers)
@@ -32,12 +32,12 @@ func Get(headers map[string]string, uri string) ([]byte, error) {
 
 	res, err := client.Do(request)
 	if err != nil {
-		return []byte{}, err
+		return []byte{}, 0, err
 	}
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return []byte{}, err
+		return []byte{}, 0, err
 	}
 	defer func(Body io.ReadCloser) {
 		if Body != nil {
@@ -45,18 +45,18 @@ func Get(headers map[string]string, uri string) ([]byte, error) {
 		}
 	}(res.Body)
 
-	return body, nil
+	return body, res.StatusCode, nil
 }
 
 // Post запрос, принимает в качестве аргумента map[string]string в котором содержатся заголовки,uri адрес, data []byte
-func Post(headers map[string]string, uri string, data []byte) ([]byte, error) {
+func Post(headers map[string]string, uri string, data []byte) ([]byte, int, error) {
 	var buf *bytes.Buffer
 	if data != nil {
 		buf = bytes.NewBuffer(data)
 	}
 	request, err := http.NewRequest(http.MethodPost, uri, buf)
 	if err != nil {
-		return []byte{}, err
+		return []byte{}, 0, err
 	}
 
 	writeHeaders(request, headers)
@@ -67,12 +67,12 @@ func Post(headers map[string]string, uri string, data []byte) ([]byte, error) {
 
 	res, err := client.Do(request)
 	if err != nil {
-		return []byte{}, err
+		return []byte{}, 0, err
 	}
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return []byte{}, err
+		return []byte{}, 0, err
 	}
 	defer func(Body io.ReadCloser) {
 		if Body != nil {
@@ -80,7 +80,7 @@ func Post(headers map[string]string, uri string, data []byte) ([]byte, error) {
 		}
 	}(res.Body)
 
-	return body, nil
+	return body, res.StatusCode, nil
 }
 
 // TryTCPNetAddress Проверяем доступность сервера через TCP
